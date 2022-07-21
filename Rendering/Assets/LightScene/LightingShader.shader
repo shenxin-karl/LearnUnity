@@ -60,23 +60,6 @@ Shader "Unlit/LightingShader"
                 return F0 + (1.f - F0) * (cosTh * cosTh * cosTh * cosTh * cosTh);
             }
 
-            float3 BlinnPhong(float3 lightStrength, float3 L, float N, float3 V, MaterialData mat) {
-                float m = max((1.0 - mat.roughness) * 256.f, 1.f);
-                fixed3 H = normalize(V + L);
-
-                float3 F0 = lerp(float3(0.04, 0.04, 0.04), mat.diffuseAlbedo.rgb, mat.metallic);
-
-                float NdotH = max(dot(N, H), 0.0);
-                float roughnessFactor = (m + 2.0) / 8.0 * pow(NdotH, m);
-                float3 freshnelFactor = SchlickFresnel(F0, saturate(dot(H, L)));
-                float3 specAlbedo = roughnessFactor * freshnelFactor;
-
-                float3 diffAlbedo = mat.diffuseAlbedo.rgb * (1.f - mat.metallic);
-                specAlbedo = specAlbedo / (specAlbedo + 1.f);
-                return (diffAlbedo + specAlbedo) * lightStrength;
-                
-            }
-
             float4 frag(VertexOut pin) : SV_TARGET {
                 float3 textureAlbedo = tex2D(_MainTex, pin.texcoord);
                 MaterialData mat = {
@@ -84,6 +67,8 @@ Shader "Unlit/LightingShader"
                     _Roughness,
                     _Metallic,
                 };
+
+                float3 ambient = UNITY_LIGHTMODEL_AMBIENT.rgb * textureAlbedo;
 
                 float3 N = normalize(pin.normal);
                 float3 L = normalize(UnityWorldSpaceLightDir(pin.position));
@@ -102,7 +87,7 @@ Shader "Unlit/LightingShader"
 
                 float3 diffAlbedo = mat.diffuseAlbedo.rgb * (1.f - mat.metallic);
                 specAlbedo = specAlbedo / (specAlbedo + 1.f);
-                float3 result = (diffAlbedo + specAlbedo) * lightStrength;
+                float3 result = ambient + (diffAlbedo + specAlbedo) * lightStrength;
                 return float4(result, 1.0);
             }
 
