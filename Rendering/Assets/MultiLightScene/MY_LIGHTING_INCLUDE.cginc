@@ -4,6 +4,7 @@
 
 #include "UnityCG.cginc"
 #include "UnityPBSLighting.cginc"
+#include "AutoLight.cginc"
 #pragma target 3.0
 
 struct VertexIn {
@@ -38,7 +39,8 @@ VertexOut vert(VertexIn vin) {
 UnityLight CreateLight(VertexOut pin, float3 N) {
     UnityLight light;
     float3 L = normalize(UnityWorldSpaceLightDir(pin.position));
-    light.color = _LightColor0.rgb;
+    UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.position);
+    light.color = _LightColor0.rgb * attenuation;
     light.dir = L;
     light.ndotl = saturate(dot(N, L));
     return light;
@@ -49,7 +51,6 @@ float4 frag(VertexOut pin) : SV_TARGET {
     float3 N = normalize(pin.normal);
     
     float3 albedo = tex2D(_MainTex, pin.texcoord).rgb * _DiffuseAlbedo.rgb;
-    float3 ambient = _LightColor0.rgb * albedo;
 
     float3 fresnelR0;
     float oneMinusReflectivity;
@@ -63,8 +64,11 @@ float4 frag(VertexOut pin) : SV_TARGET {
     UnityLight light = CreateLight(pin, N);
 
     UnityIndirect indirectLight;
-    indirectLight.diffuse = ambient;
+    indirectLight.diffuse = 0;
     indirectLight.specular = 0;
+#ifdef FORWARD_BASE
+	indirectLight.diffuse = _LightColor0.rgb * albedo;
+#endif
 
     return UNITY_BRDF_PBS(
         albedo,

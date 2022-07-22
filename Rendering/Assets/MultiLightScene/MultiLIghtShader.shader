@@ -16,6 +16,7 @@ Shader "Unlit/MultiLIghtShader"
         {
             Tags { "LightMode" = "ForwardBase" }
             CGPROGRAM
+            #define FORWARD_BASE
             #pragma vertex vert
             #pragma fragment frag
             #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc" 
@@ -31,6 +32,7 @@ Shader "Unlit/MultiLIghtShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_fwdadd
             #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc" 
             ENDCG
         }
