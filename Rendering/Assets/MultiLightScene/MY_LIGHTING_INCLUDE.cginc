@@ -18,6 +18,9 @@ struct VertexOut {
     float3 position : TEXCOORD0;
     float3 normal   : TEXCOORD1;
     float2 texcoord : TEXCOORD2;
+#if defined(VERTEXLIGHT_ON)
+	float3 vertexLightColor : TEXCOORD3;
+#endif
 };
 
 sampler2D _MainTex;
@@ -26,6 +29,16 @@ fixed _Metallic;
 fixed _Smoothness;
 float4 _DiffuseAlbedo;
 
+void ComputeVertexLightColor(inout VertexOut vout) {
+#if defined(VERTEXLIGHT_ON)
+	vout.vertexLightColor = Shade4PointLights(
+	    unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
+	    unity_LightColor[0], unity_LightColor[1], unity_LightColor[2], unity_LightColor[3],
+		unity_4LightAtten0, vout.normal, vout.position
+	);
+#endif
+}
+
 VertexOut vert(VertexIn vin) {
     VertexOut vout;
     float4 worldPosition = mul(unity_ObjectToWorld, vin.position);
@@ -33,6 +46,7 @@ VertexOut vert(VertexIn vin) {
     vout.position = worldPosition.xyz;
     vout.normal = UnityObjectToWorldNormal(vin.normal);
     vout.texcoord = TRANSFORM_TEX(vin.texcoord, _MainTex);
+    ComputeVertexLightColor(vout);
     return vout;
 }
 
@@ -44,6 +58,21 @@ UnityLight CreateLight(VertexOut pin, float3 N) {
     light.dir = L;
     light.ndotl = saturate(dot(N, L));
     return light;
+}
+
+UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo) {
+	UnityIndirect indirectLight;
+    indirectLight.diffuse = 0;
+    indirectLight.specular = 0;
+
+#ifdef FORWARD_BASE
+	indirectLight.diffuse = max(0, ShadeSH9(float4(pin.normal, 1.0)));
+#endif
+
+#if defined(VERTEXLIGHT_ON)
+	indirectLight.diffuse += pin.vertexLightColor;
+#endif
+    return indirectLight;
 }
 
 float4 frag(VertexOut pin) : SV_TARGET {
@@ -62,13 +91,7 @@ float4 frag(VertexOut pin) : SV_TARGET {
     );
 
     UnityLight light = CreateLight(pin, N);
-
-    UnityIndirect indirectLight;
-    indirectLight.diffuse = 0;
-    indirectLight.specular = 0;
-#ifdef FORWARD_BASE
-	indirectLight.diffuse = _LightColor0.rgb * albedo;
-#endif
+    UnityIndirect indirectLight = CreateUnityIndirectLight(pin, albedo);
 
     return UNITY_BRDF_PBS(
         albedo,
