@@ -97,7 +97,7 @@ Shader "Unlit/BumpMapShader"
                 float3 V = normalize(UnityWorldSpaceViewDir(pin.position));
                 float3 H = normalize(V + L);
                 float3 NdotH = saturate(dot(N, H));
-                float m = max(_Smoothness * 512.0, 1.0);
+                float m = max(_Smoothness * 1024, 1.0);
                 float3 roughnessFactor = (m + 2.0) / 8.0 * pow(NdotH, m);
                 float3 fresnelFactor = SclickFresnel(F0, saturate(dot(H, V)));
 

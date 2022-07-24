@@ -70,7 +70,9 @@
     <None Include="Assets\MultiLightScene\MultiLIghtShader.shader" />
     <None Include="Assets\MultiLightScene\MY_LIGHTING_INCLUDE.cginc" />
     <None Include="Assets\CombineTextureScene\TextureSplatting.shader" />
+    <None Include="Assets\ShdowScene\MyShadowCaster.cginc" />
     <None Include="Assets\CombineTextureScene\TextiredWithDetail 1.shader" />
+    <None Include="Assets\ShdowScene\ShadowShader.shader" />
     <None Include="Assets\ShaderScene\MyFirstShader.shader" />
     <None Include="Assets\BumpScene\BumpMapShader.shader" />
   </ItemGroup>
