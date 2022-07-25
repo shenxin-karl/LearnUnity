@@ -35,7 +35,7 @@ Shader "Unlit/ShadowShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fwdadd
+            #pragma multi_compile_fwdadd_fullshadows
             #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc" 
             ENDCG
         }
@@ -45,6 +45,7 @@ Shader "Unlit/ShadowShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_shadowcaster
             #include "MyShadowCaster.cginc" 
             ENDCG
         }
