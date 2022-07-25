@@ -1,4 +1,4 @@
-Shader "Unlit/MultiLIghtShader"
+Shader "Unlit/ShadowShader"
 {
     Properties
     {
@@ -16,20 +16,21 @@ Shader "Unlit/MultiLIghtShader"
         {
             Tags { "LightMode" = "ForwardBase" }
             CGPROGRAM
-            #define FORWARD_BASE
-            // 这里要开启 _ 和 VERTEXLIGHT_ON 两个宏 shader 变体
-            #pragma multi_compile _ VERTEXLIGHT_ON          
             #pragma vertex vert
             #pragma fragment frag
-            #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc" 
+            #define FORWARD_BASE
+            #pragma multi_compile _ VERTEXLIGHT_ON
+            #pragma multi_compile _ SHADOWS_SCREEN
+            #include "UnityCG.cginc"
+            #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc"
+ 
             ENDCG
         }
-
         pass 
         {
             Tags { "LightMode" = "ForwardAdd" }
             Blend One One
-            ZWrite Off
+            ZWrite Off 
 
             CGPROGRAM
             #pragma vertex vert
@@ -38,5 +39,15 @@ Shader "Unlit/MultiLIghtShader"
             #include "../MultiLightScene/MY_LIGHTING_INCLUDE.cginc" 
             ENDCG
         }
+        pass 
+        {
+            Tags { "LightMode" = "ShadowCaster" }
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "MyShadowCaster.cginc" 
+            ENDCG
+        }
     }
+    FallBack "Specular"
 }

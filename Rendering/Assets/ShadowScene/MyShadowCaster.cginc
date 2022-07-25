@@ -5,11 +5,13 @@
 #include "UnityCG.cginc"
 
 struct VertexIn {
-	float4 position : POSITION;
+	float3 vertex : POSITION;
+	float3 normal : NORMAL;
 };
 
 float4 vert(VertexIn vin) : SV_POSITION {
-	return UnityObjectToClipPos(vin.position);
+	float4 clipPos = UnityClipSpaceShadowCasterPos(vin.vertex, vin.normal);
+	return UnityApplyLinearShadowBias(clipPos);
 }
 
 float4 frag() : SV_Target {

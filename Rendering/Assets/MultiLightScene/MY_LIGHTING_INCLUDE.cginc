@@ -4,11 +4,12 @@
 
 #include "UnityCG.cginc"
 #include "UnityPBSLighting.cginc"
+#include "Lighting.cginc"
 #include "AutoLight.cginc"
 #pragma target 3.0
 
 struct VertexIn {
-    float4 position : POSITION;
+    float4 vertex   : POSITION;
     float3 normal   : NORMAL;
     float2 texcoord : TEXCOORD;
 };
@@ -21,6 +22,10 @@ struct VertexOut {
 #if defined(VERTEXLIGHT_ON)
 	float3 vertexLightColor : TEXCOORD3;
 #endif
+
+#if defined(SHADOWS_SCREEN)
+	SHADOW_COORDS(4)
+#endif
 };
 
 sampler2D _MainTex;
@@ -29,7 +34,14 @@ fixed _Metallic;
 fixed _Smoothness;
 float4 _DiffuseAlbedo;
 
-void ComputeVertexLightColor(inout VertexOut vout) {
+VertexOut vert(VertexIn vin) {
+    VertexOut vout;
+    float4 worldPosition = mul(unity_ObjectToWorld, vin.vertex);
+    vout.pos = mul(UNITY_MATRIX_VP, worldPosition);
+    vout.position = worldPosition.xyz;
+    vout.normal = UnityObjectToWorldNormal(vin.normal);
+    vout.texcoord = TRANSFORM_TEX(vin.texcoord, _MainTex);
+
 #if defined(VERTEXLIGHT_ON)
 	vout.vertexLightColor = Shade4PointLights(
 	    unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
@@ -37,23 +49,22 @@ void ComputeVertexLightColor(inout VertexOut vout) {
 		unity_4LightAtten0, vout.normal, vout.position
 	);
 #endif
-}
 
-VertexOut vert(VertexIn vin) {
-    VertexOut vout;
-    float4 worldPosition = mul(unity_ObjectToWorld, vin.position);
-    vout.pos = mul(UNITY_MATRIX_VP, worldPosition);
-    vout.position = worldPosition.xyz;
-    vout.normal = UnityObjectToWorldNormal(vin.normal);
-    vout.texcoord = TRANSFORM_TEX(vin.texcoord, _MainTex);
-    ComputeVertexLightColor(vout);
+#if defined(SHADOWS_SCREEN)
+	TRANSFER_SHADOW(vout);	
+#endif
+
     return vout;
 }
 
 UnityLight CreateLight(VertexOut pin, float3 N) {
     UnityLight light;
     float3 L = normalize(UnityWorldSpaceLightDir(pin.position));
+#if defined(SHADOWS_SCREEN)
+    UNITY_LIGHT_ATTENUATION(attenuation, pin, pin.position);
+#else
     UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.position);
+#endif
     light.color = _LightColor0.rgb * attenuation;
     light.dir = L;
     light.ndotl = saturate(dot(N, L));
