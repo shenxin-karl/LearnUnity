@@ -71,6 +71,18 @@ UnityLight CreateLight(VertexOut pin, float3 N) {
     return light;
 }
 
+float3 BoxProjection(float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax) {
+    UNITY_BRANCH
+    if (cubemapPosition.w > 0.0) {
+	  	boxMin -= position;
+		boxMax -= position;
+		float3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
+		float scalar = min(min(factors.x, factors.y), factors.z);
+		return direction * scalar + (position - cubemapPosition);  
+    }
+    return direction;
+}
+
 UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
 	UnityIndirect indirectLight;
     indirectLight.diffuse = 0;
@@ -78,11 +90,18 @@ UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
 
 #ifdef FORWARD_BASE
 	indirectLight.diffuse = max(0, ShadeSH9(float4(pin.normal, 1.0)));
-    float3 R = reflect(-V, pin.normal);
-    float roughness = (1.0 - _Smoothness);
-    float lod = roughness * UNITY_SPECCUBE_LOD_STEPS;
-    float4 envColor = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, R, lod);
-    indirectLight.specular = DecodeHDR(envColor, unity_SpecCube0_HDR);
+
+    Unity_GlossyEnvironmentData envData;
+	envData.roughness = 1 - _Smoothness;
+    float3 R = normalize(reflect(-V, pin.normal));
+	envData.reflUVW = BoxProjection(
+			R, pin.position,
+			unity_SpecCube0_ProbePosition,
+			unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
+		);
+    indirectLight.specular = Unity_GlossyEnvironment(
+		UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData
+	);
 #endif
 
 #if defined(VERTEXLIGHT_ON)
