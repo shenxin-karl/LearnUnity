@@ -71,13 +71,18 @@ UnityLight CreateLight(VertexOut pin, float3 N) {
     return light;
 }
 
-UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo) {
+UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
 	UnityIndirect indirectLight;
     indirectLight.diffuse = 0;
     indirectLight.specular = 0;
 
 #ifdef FORWARD_BASE
 	indirectLight.diffuse = max(0, ShadeSH9(float4(pin.normal, 1.0)));
+    float3 R = reflect(-V, pin.normal);
+    float roughness = (1.0 - _Smoothness);
+    float lod = roughness * UNITY_SPECCUBE_LOD_STEPS;
+    float4 envColor = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, R, lod);
+    indirectLight.specular = DecodeHDR(envColor, unity_SpecCube0_HDR);
 #endif
 
 #if defined(VERTEXLIGHT_ON)
@@ -102,7 +107,7 @@ float4 frag(VertexOut pin) : SV_TARGET {
     );
 
     UnityLight light = CreateLight(pin, N);
-    UnityIndirect indirectLight = CreateUnityIndirectLight(pin, albedo);
+    UnityIndirect indirectLight = CreateUnityIndirectLight(pin, albedo, V);
 
     return UNITY_BRDF_PBS(
         albedo,
