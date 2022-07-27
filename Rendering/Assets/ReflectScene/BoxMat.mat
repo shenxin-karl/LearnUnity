@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SphereMat
+  m_Name: BoxMat
   m_Shader: {fileID: 4800000, guid: ab25dd0d55aef1840a73d50f258b0114, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -63,13 +63,13 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.577
+    - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Metallic: 0.855
+    - _Metallic: 1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Smoothness: 0.375
+    - _Smoothness: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
