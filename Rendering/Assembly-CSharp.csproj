@@ -63,6 +63,7 @@
     <Compile Include="Assets\MatricesScene\RotateTransformation.cs" />
     <Compile Include="Assets\MatricesScene\Transformation.cs" />
     <Compile Include="Assets\BumpScene\ShowNormalAndTangentScript.cs" />
+    <Compile Include="Assets\ComplexMaterialsScene\MyLightingShaderGUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\LightScene\LightingShader.shader" />
@@ -71,6 +72,7 @@
     <None Include="Assets\MultiLightScene\MY_LIGHTING_INCLUDE.cginc" />
     <None Include="Assets\CombineTextureScene\TextureSplatting.shader" />
     <None Include="Assets\ShadowScene\MyShadowCaster.cginc" />
+    <None Include="Assets\ComplexMaterialsScene\MyLightingShader.shader" />
     <None Include="Assets\CombineTextureScene\TextiredWithDetail 1.shader" />
     <None Include="Assets\ShadowScene\ShadowShader.shader" />
     <None Include="Assets\ReflectScene\ReflectShader.shader" />
