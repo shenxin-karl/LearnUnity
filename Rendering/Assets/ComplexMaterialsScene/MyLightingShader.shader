@@ -4,10 +4,16 @@ Shader "Unlit/MyLightingShader"
     {
         _AlbedoTex ("AlbedoTexture", 2D) = "white" {}
         _DiffuseAlbedo ("DiffuseAlbedo", Color) = (1, 1, 1, 1)
-        _NormalTex ("NormalTexture", 2D) = "bump" {}
+        [NoScaleOffset] _NormalTex ("NormalTexture", 2D) = "bump" {}
+        [NoScaleOffset] _MetallicTex ("MetallicTexture", 2D) = "white" {}
+        [NoScaleOffset] _SmoothnessTex ("SmoothnessTexture", 2D) = "white" {}
         _BumpScale ("BumpScale", float) = 1.0
-        _Metallic ("Metallic", Range(0, 1)) = 0.5
+        [gamma] _Metallic ("Metallic", Range(0, 1)) = 0.5
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
+        _DetailAlbedoTex ("DetailAlbedoTex", 2D) = "white" {}
+        [NoScaleOffset] _DetailNormalTex ("DetailNormalTex", 2D) = "bump" {}
+        _DetailNormalScale ("DetailNormalScale", float) = 1.0 
+
     }
 
 	CustomEditor "MyLightingShaderGUI"

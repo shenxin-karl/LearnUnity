@@ -61,9 +61,9 @@
     <Compile Include="Assets\MatricesScene\ScaleTransformation.cs" />
     <Compile Include="Assets\MatricesScene\TransformationGrid.cs" />
     <Compile Include="Assets\MatricesScene\RotateTransformation.cs" />
+    <Compile Include="Assets\ComplexMaterialsScene\MyLightingShaderGUI.cs" />
     <Compile Include="Assets\MatricesScene\Transformation.cs" />
     <Compile Include="Assets\BumpScene\ShowNormalAndTangentScript.cs" />
-    <Compile Include="Assets\ComplexMaterialsScene\MyLightingShaderGUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\LightScene\LightingShader.shader" />
