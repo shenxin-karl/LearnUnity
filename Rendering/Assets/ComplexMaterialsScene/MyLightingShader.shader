@@ -13,7 +13,6 @@ Shader "Unlit/MyLightingShader"
         _DetailAlbedoTex ("DetailAlbedoTex", 2D) = "white" {}
         [NoScaleOffset] _DetailNormalTex ("DetailNormalTex", 2D) = "bump" {}
         _DetailNormalScale ("DetailNormalScale", float) = 1.0 
-
     }
 
 	CustomEditor "MyLightingShaderGUI"
@@ -26,6 +25,7 @@ Shader "Unlit/MyLightingShader"
         Pass
         {
             CGPROGRAM
+            #pragma shader_feature _ _MATERIAL_MAP
             #pragma vertex vert
             #pragma fragment frag
             // make fog work
