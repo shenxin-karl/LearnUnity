@@ -7,15 +7,21 @@ Shader "Unlit/MyLightingShader"
         [NoScaleOffset] _NormalTex ("NormalTexture", 2D) = "bump" {}
         [NoScaleOffset] _MetallicTex ("MetallicTexture", 2D) = "white" {}
         [NoScaleOffset] _SmoothnessTex ("SmoothnessTexture", 2D) = "white" {}
+        [NoScaleOffset] _OcclusionTex ("OcclusionTexture", 2D) = "white" {}
+        [NoScaleOffset] _EmissionTex ("EmissionTexture", 2D) = "block" {}
+        _EmissionColor ("EmissionColor", Color) = (0, 0, 0, 0) 
         _BumpScale ("BumpScale", float) = 1.0
+        _OcclusionStrength ("OcclusionStrength", Range(0, 1)) = 1.0 
+        _AlphaCutoff ("AlphaCutoff", Range(0, 1)) = 0.5
         [gamma] _Metallic ("Metallic", Range(0, 1)) = 0.5
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
         _DetailAlbedoTex ("DetailAlbedoTex", 2D) = "white" {}
         [NoScaleOffset] _DetailNormalTex ("DetailNormalTex", 2D) = "bump" {}
+        [NoScaleOffset] _DetailMaskTex ("DetailMaskTexture", 2D) = "white" {}
         _DetailNormalScale ("DetailNormalScale", float) = 1.0 
     }
 
-	CustomEditor "MyLightingShaderGUI"
+	CustomEditor "MyLightingShaderGUI" 
 
     SubShader
     {
@@ -24,49 +30,28 @@ Shader "Unlit/MyLightingShader"
 
         Pass
         {
+            Tags { "LightMode" = "ForwardBase" }
             CGPROGRAM
-            #pragma shader_feature _ _MATERIAL_MAP
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
-
-            #include "UnityCG.cginc"
-
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
-            };
-
-            sampler2D _AlbedoTex;
-            float4 _AlbedoTex_ST;
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _AlbedoTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                // sample the texture
-                fixed4 col = tex2D(_AlbedoTex, i.uv);
-                // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
-                return col;
-            }
+            #define FORWARD_BASE
+            #include "MyShaderInclude.cginc"
             ENDCG
         }
+        
+        Pass 
+        {
+            Tags { "LightMode" = "ForwardAdd" }    
+            Blend One One
+            ZWrite Off
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fwdadd
+            #include "MyShaderInclude.cginc"
+            ENDCG
+        }
+        
     }
+    Fallback "Specular"
 }
