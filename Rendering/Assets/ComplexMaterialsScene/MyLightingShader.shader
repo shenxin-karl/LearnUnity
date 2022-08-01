@@ -19,6 +19,10 @@ Shader "Unlit/MyLightingShader"
         [NoScaleOffset] _DetailNormalTex ("DetailNormalTex", 2D) = "bump" {}
         [NoScaleOffset] _DetailMaskTex ("DetailMaskTexture", 2D) = "white" {}
         _DetailNormalScale ("DetailNormalScale", float) = 1.0 
+        
+        [HideInInspector] _SrcBlend ("SrcBlend", Float) = 1
+        [HideInInspector] _DstBlend ("DstBlend", Float) = 0  
+        [HideInInspector] _ZWrite ("ZWrite", Float) = 1
     }
 
 	CustomEditor "MyLightingShaderGUI" 
@@ -31,6 +35,8 @@ Shader "Unlit/MyLightingShader"
         Pass
         {
             Tags { "LightMode" = "ForwardBase" }
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -42,7 +48,7 @@ Shader "Unlit/MyLightingShader"
         Pass 
         {
             Tags { "LightMode" = "ForwardAdd" }    
-            Blend One One
+            Blend [_SrcBlend] One
             ZWrite Off
             CGPROGRAM
             #pragma vertex vert

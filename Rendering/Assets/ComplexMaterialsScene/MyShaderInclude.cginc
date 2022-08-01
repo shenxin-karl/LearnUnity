@@ -46,7 +46,7 @@ Properties
 #pragma shader_feature _ _OCCLUSION_MAP
 #pragma shader_feature _ _OCCLUSTION_SOURCE _OCCLUSTION_METALLIC_SOURCE
 #pragma shader_feature _ _DETAIL_MASK_MAP
-#pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST
+#pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST _RENDERING_MODE_TRANSPARENT
 
 #pragma shader_feature _ VERTEXLIGHT_ON
 #pragma shader_feature _ SHADOWS_SCREEN
@@ -293,9 +293,15 @@ float getAlpha(VertexOut pin) {
 }
 
 float4 frag(VertexOut pin) : SV_Target {
-    #if defined(_RENDERING_MODE_ALPHA_TEST)
-        clip(getAlpha(pin) - _AlphaCutoff);    
+    float alpha = _DiffuseAlbedo.a;
+    #if defined(_RENDERING_MODE_ALPHA_TEST) || defined(_RENDERING_MODE_TRANSPARENT)
+        alpha *= getAlpha(pin);
     #endif
+
+    #if defined(_RENDERING_MODE_ALPHA_TEST)
+        clip(alpha - _AlphaCutoff);
+    #endif
+    
     float3 N = getNormal(pin);
     float3 V = normalize(UnityWorldSpaceViewDir(pin.worldPosition));
     
@@ -321,6 +327,10 @@ float4 frag(VertexOut pin) : SV_Target {
         indirectLight
     );
     finalColor.xyz += getEmission(pin);
+
+    #if defined(_RENDERING_MODE_TRANSPARENT)
+        finalColor.a = alpha;
+    #endif
     return finalColor;
 }
 

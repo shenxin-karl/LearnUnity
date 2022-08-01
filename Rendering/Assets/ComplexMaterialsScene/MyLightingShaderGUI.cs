@@ -26,19 +26,31 @@ public class MyLightingShaderGUI : ShaderGUI {
     struct RenderingSettings {
         public RenderQueue queue;
         public string renderType;
+        public BlendMode srcBlend;
+        public BlendMode dstBlend;
+        public bool zWrite;
 
         public static RenderingSettings[] modes = {
             new RenderingSettings() {
                 queue = RenderQueue.Geometry,
                 renderType = "",
+                srcBlend = BlendMode.One,
+                dstBlend = BlendMode.Zero,
+                zWrite = true,
             },
             new RenderingSettings() {
                 queue = RenderQueue.AlphaTest,
                 renderType = "TransparentCutout",
+                srcBlend = BlendMode.One,
+                dstBlend = BlendMode.Zero,
+                zWrite = true,
             },
             new RenderingSettings() {
                 queue = RenderQueue.Transparent,
                 renderType = "Transparent",
+                srcBlend = BlendMode.SrcAlpha,
+                dstBlend = BlendMode.OneMinusSrcAlpha,
+                zWrite = false,
             }
         };
     };
@@ -97,6 +109,9 @@ public class MyLightingShaderGUI : ShaderGUI {
                 Material m = (Material)o;
                 m.renderQueue = (int)settings.queue;
                 m.SetOverrideTag("RenderType", settings.renderType);
+                m.SetFloat("_SrcBlend", (float)settings.srcBlend);
+                m.SetFloat("_DstBlend", (float)settings.dstBlend);
+                m.SetFloat("_ZWrite", settings.zWrite ? 1f : 0f);
             }
         } 
     }
