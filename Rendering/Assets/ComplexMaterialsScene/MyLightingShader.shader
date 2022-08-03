@@ -67,18 +67,22 @@ Shader "Unlit/MyLightingShader"
             #pragma shader_feature _ _ALBEDO_MAP
             #pragma shader_feature _ _SMOOTHNESS_ALBEDO_SOURCE
             #pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST
+            #pragma shader_feature _ _TRANSPARENT_SHADOW_CAST
             #pragma multi_compile_shadowcaster
             #include "UnityCG.cginc"
             
             sampler2D _AlbedoTex;
+            sampler3D _DitherMaskLOD;
             float4    _AlbedoTex_ST;
             float4    _DiffuseAlbedo;
             float     _AlphaCutoff;
 
-            #if defined(_RENDERING_MODE_ALPHA_TEST) && defined(_ALBEDO_MAP) && !(_SMOOTHNESS_ALBEDO_SOURCE)
+            #define _TRANSPARENT_SHADOW_CAST
+            #if (defined(_TRANSPARENT_SHADOW_CAST) || defined(_RENDERING_MODE_ALPHA_TEST)) && defined(_ALBEDO_MAP) && !(_SMOOTHNESS_ALBEDO_SOURCE)
                 #define SHADOW_NEED_UV 1
             #endif
 
+            
 #if defined(SHADOWS_CUBE)
             struct VertexIn {
 		        float3 vertex   : POSITION;
@@ -135,7 +139,7 @@ Shader "Unlit/MyLightingShader"
             #endif
             };
 
-            VertexOut vert(VertexIn vin) {
+            VertexOut vert(VertexIn vin) { 
                 VertexOut vout;
                 float4 clipPos = UnityClipSpaceShadowCasterPos(vin.vertex, vin.normal);
                 vout.pos = UnityApplyLinearShadowBias(clipPos);
@@ -153,6 +157,10 @@ Shader "Unlit/MyLightingShader"
                 
                 #if defined(_RENDERING_MODE_ALPHA_TEST)
                     clip(alpha - _AlphaCutoff);
+                #elif defined(_TRANSPARENT_SHADOW_CAST)
+                    float3 vpos = float3(pin.pos.xy * 0.25, alpha * 15.0 / 16.0);
+                    float dither = tex3D(_DitherMaskLOD, vpos).a;
+                    clip(dither - 0.01);
                 #endif
                 
                 return float4(0.0, 0.0, 0.0, 1.0);
