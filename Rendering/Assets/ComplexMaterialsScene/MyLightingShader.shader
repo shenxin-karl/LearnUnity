@@ -117,6 +117,10 @@ Shader "Unlit/MyLightingShader"
                 
                 #if defined(_RENDERING_MODE_ALPHA_TEST)
                     clip(alpha - _AlphaCutoff);
+                #elif defined(_TRANSPARENT_SHADOW_CAST)
+                    float3 vpos = float3(pin.pos.xy * 0.25, alpha * 15.0 / 16.0);
+                    float dither = tex3D(_DitherMaskLOD, vpos).a;
+                    clip(dither - 0.01);
                 #endif
 	            
 		        float depth = length(pin.lightVec) + unity_LightShadowBias.x;
