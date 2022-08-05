@@ -1,7 +1,6 @@
 #ifndef _MY_SHADER_INCLUDE_
 #define _MY_SHADER_INCLUDE_
 
-
 /*
  
 Properties
@@ -46,7 +45,7 @@ Properties
 #pragma shader_feature _ _OCCLUSION_MAP
 #pragma shader_feature _ _OCCLUSTION_SOURCE _OCCLUSTION_METALLIC_SOURCE
 #pragma shader_feature _ _DETAIL_MASK_MAP
-#pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST _RENDERING_MODE_TRANSPARENT
+// #pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST _RENDERING_MODE_TRANSPARENT
 
 #pragma shader_feature _ VERTEXLIGHT_ON
 #pragma shader_feature _ SHADOWS_SCREEN
@@ -174,16 +173,22 @@ float getOcclusion(VertexOut pin) {
 
 UnityLight CreateLight(VertexOut pin, float3 N) {
     UnityLight light;
-    float3 L = normalize(UnityWorldSpaceLightDir(pin.worldPosition));
-    #if defined(SHADOWS_SCREEN)
-        UNITY_LIGHT_ATTENUATION(attenuation, pin, pin.worldPosition);
+
+    #if defined(DEFERRED_PASS)
+        light.dir = float3(0, 1, 0);
+        light.color = 0;
     #else
-        UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.worldPosition);
+        float3 L = normalize(UnityWorldSpaceLightDir(pin.worldPosition));
+        #if defined(SHADOWS_SCREEN)
+            UNITY_LIGHT_ATTENUATION(attenuation, pin, pin.worldPosition);
+        #else
+            UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.worldPosition);
+        #endif
+        
+        light.color = _LightColor0.rgb * attenuation * getOcclusion(pin);
+        light.dir = L;
     #endif
-    
-    light.color = _LightColor0.rgb * attenuation * getOcclusion(pin);
-    light.dir = L;
-    light.ndotl = saturate(dot(N, L));
+    // light.ndotl = saturate(dot(N, L));
     return light;
 }
 
@@ -204,7 +209,7 @@ UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
     indirectLight.diffuse = 0;
     indirectLight.specular = 0;
 
-    #ifdef FORWARD_BASE
+    #if defined(FORWARD_BASE_PASS) || defined(DEFERRED_PASS) 
         indirectLight.diffuse = max(0, ShadeSH9(float4(pin.worldNormal, 1.0)));
         Unity_GlossyEnvironmentData envData;
         envData.roughness = 1 - _Smoothness;
@@ -274,7 +279,7 @@ float getSmoothness(VertexOut pin) {
 }
 
 float3 getEmission(VertexOut pin) {
-    #if defined(FORWARD_BASE)
+    #if defined(FORWARD_BASE_PASS) || defined(DEFERRED_PASS)
         #if defined(_EMISSION_MAP)
             return tex2D(_EmissionTex, pin.texcoord).rgb * _EmissionColor.rgb;
         #else
@@ -292,7 +297,18 @@ float getAlpha(VertexOut pin) {
     return alpha;
 }
 
-float4 frag(VertexOut pin) : SV_Target {
+struct PixelOut {
+#if defined(DEFERRED_PASS)
+    float4 gBuffer0 : SV_Target0;
+    float4 gBuffer1 : SV_Target1;
+    float4 gBuffer2 : SV_Target2;
+    float4 gBuffer3 : SV_Target3;
+#else
+    float4 color    : SV_Target;
+#endif
+};
+
+PixelOut frag(VertexOut pin) {
     float alpha = _DiffuseAlbedo.a;
     #if defined(_RENDERING_MODE_ALPHA_TEST) || defined(_RENDERING_MODE_TRANSPARENT)
         alpha *= getAlpha(pin);
@@ -331,7 +347,21 @@ float4 frag(VertexOut pin) : SV_Target {
     #if defined(_RENDERING_MODE_TRANSPARENT)
         finalColor.a = alpha;
     #endif
-    return finalColor;
+
+
+    PixelOut pout;
+    #if defined(DEFERRED_PASS)
+        pout.gBuffer0.rgb = albedo;
+        pout.gBuffer0.a = getOcclusion(pin);
+        pout.gBuffer1.rgb = fresnelR0;
+        pout.gBuffer1.a = getSmoothness(pin);
+        pout.gBuffer2.rgb = N * 0.5 + 0.5;
+        pout.gBuffer2.a = 1.0;
+        pout.gBuffer3 = finalColor;
+    #else
+        pout.color = finalColor;
+    #endif
+    return pout;
 }
 
 #endif
