@@ -268,7 +268,7 @@ ReflectionProbe:
   m_BoxProjection: 1
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
-  m_Importance: 1
+  m_Importance: 0
   m_CustomBakedTexture: {fileID: 0}
 --- !u!4 &35133350
 Transform:
@@ -333,7 +333,7 @@ ReflectionProbe:
   m_BoxProjection: 0
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
-  m_Importance: 1
+  m_Importance: 0
   m_CustomBakedTexture: {fileID: 0}
 --- !u!4 &139023511
 Transform:
@@ -537,7 +537,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 244763247}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.38, y: 2.768, z: -2.8}
+  m_LocalPosition: {x: 0.604, y: 2.768, z: -0.51}
   m_LocalScale: {x: 2.2732854, y: 2.2732854, z: 2.2732854}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -592,7 +592,7 @@ ReflectionProbe:
   m_BoxProjection: 1
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
-  m_Importance: 1
+  m_Importance: 0
   m_CustomBakedTexture: {fileID: 0}
 --- !u!4 &277738584
 Transform:
@@ -959,7 +959,7 @@ Camera:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingPath: -1
+  m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
@@ -977,8 +977,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 872628933}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -23.78}
+  m_LocalRotation: {x: -0.29828554, y: -0.06501941, z: 0.020035911, w: -0.9520488}
+  m_LocalPosition: {x: -0.39227197, y: 10.966482, z: -14.614277}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1806,7 +1806,7 @@ ReflectionProbe:
   m_BoxProjection: 0
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
-  m_Importance: 1
+  m_Importance: 0
   m_CustomBakedTexture: {fileID: 0}
 --- !u!4 &1985814905
 Transform:

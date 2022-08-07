@@ -45,6 +45,7 @@ Properties
 #pragma shader_feature _ _OCCLUSION_MAP
 #pragma shader_feature _ _OCCLUSTION_SOURCE _OCCLUSTION_METALLIC_SOURCE
 #pragma shader_feature _ _DETAIL_MASK_MAP
+#pragma multi_compile _ UNITY_HDR_ON
 // #pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST _RENDERING_MODE_TRANSPARENT
 
 #pragma shader_feature _ VERTEXLIGHT_ON
@@ -238,6 +239,11 @@ UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
         float occlusionStrength = getOcclusion(pin);
         indirectLight.diffuse *= occlusionStrength;
         indirectLight.specular *= occlusionStrength;
+
+        // UNITY_ENABLE_REFLECTION_BUFFERS: 延迟渲染是否开启反射探针
+        #if defined(DEFERRED_PASS) && !UNITY_ENABLE_REFLECTION_BUFFERS
+            indirectLight.specular = 0;
+        #endif
     #endif
 
     #if defined(VERTEXLIGHT_ON)
@@ -298,11 +304,12 @@ float getAlpha(VertexOut pin) {
 }
 
 struct PixelOut {
+    // 延迟渲染输出 4 个 RT
 #if defined(DEFERRED_PASS)
-    float4 gBuffer0 : SV_Target0;
-    float4 gBuffer1 : SV_Target1;
-    float4 gBuffer2 : SV_Target2;
-    float4 gBuffer3 : SV_Target3;
+    float4 gBuffer0 : SV_Target0;       // .rgb: 反照率            .a: 遮挡因子   
+    float4 gBuffer1 : SV_Target1;       // .rgb: 高光(菲涅尔)       .a: 光滑度
+    float4 gBuffer2 : SV_Target2;       // .rgb: 法线              .a: 未使用
+    float4 gBuffer3 : SV_Target3;       // .rgb: 自发光 + 间接光照   .a: 未使用
 #else
     float4 color    : SV_Target;
 #endif
@@ -351,13 +358,18 @@ PixelOut frag(VertexOut pin) {
 
     PixelOut pout;
     #if defined(DEFERRED_PASS)
+        // 如果开启的是 LDR, 需要解码
+        #if !defined(UNITY_HDR_ON)
+            finalColor.rgb = exp2(-finalColor.rgb);
+        #endif
+    
         pout.gBuffer0.rgb = albedo;
         pout.gBuffer0.a = getOcclusion(pin);
         pout.gBuffer1.rgb = fresnelR0;
         pout.gBuffer1.a = getSmoothness(pin);
         pout.gBuffer2.rgb = N * 0.5 + 0.5;
         pout.gBuffer2.a = 1.0;
-        pout.gBuffer3 = finalColor;
+        pout.gBuffer3 = finalColor;     // 这里要包含简介光照
     #else
         pout.color = finalColor;
     #endif
