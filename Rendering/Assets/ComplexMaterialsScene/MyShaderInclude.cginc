@@ -2,6 +2,9 @@
 #define _MY_SHADER_INCLUDE_
 
 /*
+
+// 开启深度雾
+#define FOG_DISTANCE 
  
 Properties
     {
@@ -64,7 +67,10 @@ struct VertexIn {
 };
 
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    #define FOG_DEPTH 1
+    #if !defined(FOG_DISTANCE)
+        #define FOG_DEPTH 1
+    #endif
+    #define FOG_ON
 #endif
 
 struct VertexOut {
@@ -328,6 +334,10 @@ struct PixelOut {
 };
 
 float4 applyFog(float4 color, VertexOut pin) {
+    #if !defined(FOG_ON)
+        return color;
+    #endif
+    
     #if defined(FOG_DEPTH)          
         // 如果使用 reverse_z 时, UNITY_Z_0_FAR_FROM_CLIPSPACE 能转换为正确的深度
         // 同时也能处理左手坐标系和右手坐标系 正负 z 的问题
@@ -336,7 +346,13 @@ float4 applyFog(float4 color, VertexOut pin) {
         float viewDistance = length(_WorldSpaceCameraPos.xyz - pin.worldPosition.xyz);
     #endif
     UNITY_CALC_FOG_FACTOR_RAW(viewDistance);
-    return lerp(unity_FogColor, color, saturate(unityFogFactor));
+
+    float3 fogColor = 0;
+    #if defined(FORWARD_BASE_PASS)
+        fogColor = unity_FogColor.rgb;
+    #endif
+    color.rgb = lerp(fogColor, color.rgb, saturate(unityFogFactor));
+    return color;
 }
 
 PixelOut frag(VertexOut pin) {
