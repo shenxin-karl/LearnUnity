@@ -46,6 +46,7 @@ Properties
 #pragma shader_feature _ _OCCLUSTION_SOURCE _OCCLUSTION_METALLIC_SOURCE
 #pragma shader_feature _ _DETAIL_MASK_MAP
 #pragma multi_compile _ UNITY_HDR_ON
+#pragma multi_compile_fog
 // #pragma shader_feature _ _RENDERING_MODE_ALPHA_TEST _RENDERING_MODE_TRANSPARENT
 
 #pragma shader_feature _ VERTEXLIGHT_ON
@@ -62,9 +63,17 @@ struct VertexIn {
 #endif
 };
 
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    #define FOG_DEPTH 1
+#endif
+
 struct VertexOut {
     float4 pos           : SV_POSITION;
+#if defined(FOG_DEPTH)
+    float4 worldPosition : TEXCOORD0;
+#else
     float3 worldPosition : TEXCOORD0;
+#endif
     float3 worldNormal   : TEXCOORD1;
     float2 texcoord      : TEXCOORD2;
 #if defined(_DETAIL_ALBEDO_MAP) || defined(_DETAIL_NORMAL_MAP)
@@ -105,7 +114,10 @@ VertexOut vert(VertexIn vin) {
     VertexOut vout;
     float4 worldPosition = mul(unity_ObjectToWorld, vin.vertex);
     vout.pos = mul(UNITY_MATRIX_VP, worldPosition);
-    vout.worldPosition = worldPosition.xyz;
+    vout.worldPosition.xyz = worldPosition.xyz;
+    #if defined(FOG_DEPTH)  // 这里记录的是裁剪空间的深度
+        vout.worldPosition.w = vout.pos.z;
+    #endif
     vout.worldNormal = UnityObjectToWorldNormal(vin.normal);
     vout.texcoord = TRANSFORM_TEX(vin.texcoord, _AlbedoTex);
 
@@ -121,7 +133,7 @@ VertexOut vert(VertexIn vin) {
         vout.vertexLightColor = Shade4PointLights(
             unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
             unity_LightColor[0], unity_LightColor[1], unity_LightColor[2], unity_LightColor[3],
-            unity_4LightAtten0, vout.worldNormal, vout.worldPosition
+            unity_4LightAtten0, vout.worldNormal, vout.worldPosition.xyz
         );
     #endif
 
@@ -179,11 +191,11 @@ UnityLight CreateLight(VertexOut pin, float3 N) {
         light.dir = float3(0, 1, 0);
         light.color = 0;
     #else
-        float3 L = normalize(UnityWorldSpaceLightDir(pin.worldPosition));
+        float3 L = normalize(UnityWorldSpaceLightDir(pin.worldPosition.xyz));
         #if defined(SHADOWS_SCREEN)
-            UNITY_LIGHT_ATTENUATION(attenuation, pin, pin.worldPosition);
+            UNITY_LIGHT_ATTENUATION(attenuation, pin, pin.worldPosition.xyz);
         #else
-            UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.worldPosition);
+            UNITY_LIGHT_ATTENUATION(attenuation, 0, pin.worldPosition.xyz);
         #endif
         
         light.color = _LightColor0.rgb * attenuation * getOcclusion(pin);
@@ -216,7 +228,7 @@ UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
         envData.roughness = 1 - _Smoothness;
         float3 R = reflect(-V, pin.worldNormal);
         envData.reflUVW = BoxProjection(
-                R, pin.worldPosition,
+                R, pin.worldPosition.xyz,
                 unity_SpecCube0_ProbePosition,
                 unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
             );
@@ -224,7 +236,7 @@ UnityIndirect CreateUnityIndirectLight(VertexOut pin, float3 albedo, float3 V) {
 
         #if UNITY_SPECCUBE_BLENDING
             envData.reflUVW = BoxProjection(
-                R, pin.worldPosition,
+                R, pin.worldPosition.xyz,
                 unity_SpecCube1_ProbePosition,
                 unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
             );
@@ -315,6 +327,18 @@ struct PixelOut {
 #endif
 };
 
+float4 applyFog(float4 color, VertexOut pin) {
+    #if defined(FOG_DEPTH)          
+        // 如果使用 reverse_z 时, UNITY_Z_0_FAR_FROM_CLIPSPACE 能转换为正确的深度
+        // 同时也能处理左手坐标系和右手坐标系 正负 z 的问题
+        float viewDistance = UNITY_Z_0_FAR_FROM_CLIPSPACE(pin.worldPosition.w);
+    #else
+        float viewDistance = length(_WorldSpaceCameraPos.xyz - pin.worldPosition.xyz);
+    #endif
+    UNITY_CALC_FOG_FACTOR_RAW(viewDistance);
+    return lerp(unity_FogColor, color, saturate(unityFogFactor));
+}
+
 PixelOut frag(VertexOut pin) {
     float alpha = _DiffuseAlbedo.a;
     #if defined(_RENDERING_MODE_ALPHA_TEST) || defined(_RENDERING_MODE_TRANSPARENT)
@@ -326,7 +350,7 @@ PixelOut frag(VertexOut pin) {
     #endif
     
     float3 N = getNormal(pin);
-    float3 V = normalize(UnityWorldSpaceViewDir(pin.worldPosition));
+    float3 V = normalize(UnityWorldSpaceViewDir(pin.worldPosition.xyz));
     
     float3 fresnelR0;
     float oneMinusReflectivity;
@@ -371,7 +395,7 @@ PixelOut frag(VertexOut pin) {
         pout.gBuffer2.a = 1.0;
         pout.gBuffer3 = finalColor;     // 这里要包含简介光照
     #else
-        pout.color = finalColor;
+        pout.color = applyFog(finalColor, pin);
     #endif
     return pout;
 }
