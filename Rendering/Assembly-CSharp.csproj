@@ -49,9 +49,11 @@
      <Compile Include="Assets\ComplexMaterialsScene\MyLightingShaderGUI.cs" />
      <Compile Include="Assets\MatricesScene\Transformation.cs" />
      <Compile Include="Assets\BumpScene\ShowNormalAndTangentScript.cs" />
+     <Compile Include="Assets\FogScene\DeferredFogEffect.cs" />
      <None Include="Assets\LightScene\LightingShader.shader" />
      <None Include="Assets\LightScene\UnityPBSShader.shader" />
      <None Include="Assets\MultiLightScene\MultiLIghtShader.shader" />
+     <None Include="Assets\FogScene\DeferredFog.shader" />
      <None Include="Assets\MultiLightScene\MY_LIGHTING_INCLUDE.cginc" />
      <None Include="Assets\CombineTextureScene\TextureSplatting.shader" />
      <None Include="Assets\ShadowScene\MyShadowCaster.cginc" />
