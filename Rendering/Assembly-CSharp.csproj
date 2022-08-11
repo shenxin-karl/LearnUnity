@@ -47,9 +47,9 @@
      <Compile Include="Assets\MatricesScene\TransformationGrid.cs" />
      <Compile Include="Assets\MatricesScene\RotateTransformation.cs" />
      <Compile Include="Assets\ComplexMaterialsScene\MyLightingShaderGUI.cs" />
+     <Compile Include="Assets\FogScene\DeferredFogEffect.cs" />
      <Compile Include="Assets\MatricesScene\Transformation.cs" />
      <Compile Include="Assets\BumpScene\ShowNormalAndTangentScript.cs" />
-     <Compile Include="Assets\FogScene\DeferredFogEffect.cs" />
      <None Include="Assets\LightScene\LightingShader.shader" />
      <None Include="Assets\LightScene\UnityPBSShader.shader" />
      <None Include="Assets\MultiLightScene\MultiLIghtShader.shader" />

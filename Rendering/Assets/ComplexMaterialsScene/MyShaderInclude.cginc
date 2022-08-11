@@ -410,6 +410,7 @@ PixelOut frag(VertexOut pin) {
         pout.gBuffer2.rgb = N * 0.5 + 0.5;
         pout.gBuffer2.a = 1.0;
         pout.gBuffer3 = finalColor;     // 这里要包含简介光照
+        pout.gBuffer3.a = 1.0;
     #else
         pout.color = applyFog(finalColor, pin);
     #endif

@@ -50,6 +50,7 @@ Shader "Unlit/MyLightingShader"
         {
             Tags { "LightMode" = "ForwardAdd" }    
             Blend [_SrcBlend] One
+            ZTest On
             ZWrite Off
             CGPROGRAM
             #pragma vertex vert

@@ -33,7 +33,7 @@ public class MyLightingShaderGUI : ShaderGUI {
         public static RenderingSettings[] modes = {
             new RenderingSettings() {
                 queue = RenderQueue.Geometry,
-                renderType = "",
+                renderType = "Opaque",
                 srcBlend = BlendMode.One,
                 dstBlend = BlendMode.Zero,
                 zWrite = true,
