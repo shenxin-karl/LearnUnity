@@ -53,6 +53,7 @@
      <None Include="Assets\LightScene\LightingShader.shader" />
      <None Include="Assets\LightScene\UnityPBSShader.shader" />
      <None Include="Assets\MultiLightScene\MultiLIghtShader.shader" />
+     <None Include="Assets\DeferredShadingScene\DeferredShading.shader" />
      <None Include="Assets\FogScene\DeferredFog.shader" />
      <None Include="Assets\MultiLightScene\MY_LIGHTING_INCLUDE.cginc" />
      <None Include="Assets\CombineTextureScene\TextureSplatting.shader" />
@@ -61,6 +62,7 @@
      <None Include="Assets\CombineTextureScene\TextiredWithDetail 1.shader" />
      <None Include="Assets\ShadowScene\ShadowShader.shader" />
      <None Include="Assets\ReflectScene\ReflectShader.shader" />
+     <None Include="Assets\DeferredShadingScene\MyDeferredShading.cginc" />
      <None Include="Assets\ComplexMaterialsScene\MyShaderInclude.cginc" />
      <None Include="Assets\ShaderScene\MyFirstShader.shader" />
      <None Include="Assets\BumpScene\BumpMapShader.shader" />
