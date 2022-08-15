@@ -16,8 +16,13 @@ UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
-sampler2D _LightTexture0;
 sampler2D _LightTextureB0;
+
+#if defined(POINT_COOKIE)
+    samplerCUBE _LightTexture0;
+#else
+    sampler2D _LightTexture0;
+#endif
 
 #if defined(DIRECTIONAL) || defined(DIRECTIONAL_COOKIE)
     sampler2D _ShadowMapTexture;
@@ -81,7 +86,11 @@ UnityLight CreateLight(float2 texcoord, float3 worldPos, float viewZ) {
                 shadowed = true;
                 shadowAttenuation = UnitySampleShadowmap(mul(unity_WorldToShadow[0], float4(worldPos, 1.0)));
             #endif
-        #else 
+        #else
+            #if defined(POINT_COOKIE)
+                float3 lightCookieTexcoord = mul(unity_WorldToLight, float4(worldPos, 1.0)).xyz;
+                lightAttenuation *= texCUBEbias(_LightTexture0, float4(lightCookieTexcoord, -8.0)).w;
+            #endif
             #if defined(SHADOWS_CUBE)
                 shadowed = true;
                 shadowAttenuation = UnitySampleShadowmap(-lightVec);
